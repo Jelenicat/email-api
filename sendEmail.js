@@ -16,6 +16,11 @@ app.post('/send', async (req, res) => {
     return res.status(400).json({ error: 'Nedostaju podaci.' });
   }
 
+  app.get("/send", (req, res) => {
+  res.send("Email API radi 🎉");
+});
+
+
   const msg = {
     to: email,
     from: {
