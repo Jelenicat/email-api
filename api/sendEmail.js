@@ -1,37 +1,44 @@
-const sgMail = require("@sendgrid/mail");
+import mailjet from 'node-mailjet';
 
-sgMail.setApiKey(process.env.SENDGRID_API_KEY);
-
-module.exports = async (req, res) => {
-  // Dozvoljavamo samo POST zahtev
-  if (req.method !== "POST") {
-    return res.status(405).json({ message: "Only POST method is allowed" });
+export default async function handler(req, res) {
+  if (req.method !== 'POST') {
+    return res.status(405).json({ message: 'Only POST method is allowed' });
   }
 
-  // Izvlačimo podatke iz tela zahteva
-  const { to, subject, text } = req.body;
+  const { ime, prezime, email, profesorEmail, datum, vreme } = req.body;
 
-  // Provera da su svi podaci uneti
-  if (!to || !subject || !text) {
-    return res.status(400).json({ message: "Missing required fields" });
+  if (!ime || !prezime || !email || !profesorEmail || !datum || !vreme) {
+    return res.status(400).json({ message: 'Nedostaju podaci za slanje' });
   }
+
+  const mailjetClient = mailjet.apiConnect(
+    process.env.MAILJET_API_KEY,
+    process.env.MAILJET_SECRET_KEY
+  );
 
   try {
-    // Slanje mejla putem SendGrid-a
-    await sgMail.send({
-      to,                          // Email učenika
-      from: "jelenatanaskovicj@gmail.com", // 🔁 Zameni svojim verifikovanim mejlom na SendGrid-u
-      subject,
-      text,
+    await mailjetClient.post('send', { version: 'v3.1' }).request({
+      Messages: [
+        {
+          From: {
+            Email: 'jelenatanaskovicj@gmail.com',
+            Name: 'Privatni časovi',
+          },
+          To: [
+            {
+              Email: profesorEmail,
+              Name: 'Profesor',
+            },
+          ],
+          Subject: 'Nova rezervacija časa',
+          TextPart: `Učenik ${ime} ${prezime} je zakazao čas za ${datum} u ${vreme}. Kontakt email: ${email}.`,
+        },
+      ],
     });
 
-    res.status(200).json({ message: "Email uspešno poslat!" });
+    res.status(200).json({ message: 'Email uspešno poslat!' });
   } catch (error) {
-    console.error("Greška pri slanju:", error);
-
-    // Ako je moguće, pošalji i detaljnu poruku greške
-    const message = error?.response?.body?.errors?.[0]?.message || "Unknown error";
-
-    res.status(500).json({ message: "Greška pri slanju mejla", error: message });
+    console.error('Mailjet greška:', error);
+    res.status(500).json({ message: 'Greška pri slanju emaila' });
   }
-};
+}
