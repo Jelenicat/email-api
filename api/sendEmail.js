@@ -43,7 +43,7 @@ export default async function handler(req, res) {
         Messages: [
           {
             From: {
-              Email: 'jelenatanaskovicj@gmail.com',
+              Email: 'noreply@privatnicasovi.org',
               Name: 'Privatni časovi',
             },
             To: [
