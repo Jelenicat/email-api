@@ -8,8 +8,6 @@ export default async function handler(req, res) {
 
   const { ime, prezime, email, datum, vreme, telefonUcenika, profesorEmail } = req.body;
 
-  console.log("PRIMLJENO:", { ime, prezime, email, datum, vreme, telefonUcenika, profesorEmail });
-
   if (!ime || !prezime || !email || !datum || !vreme || !telefonUcenika || !profesorEmail) {
     return res.status(400).json({ message: 'Nedostaju podaci za slanje' });
   }
@@ -24,13 +22,13 @@ export default async function handler(req, res) {
   const html = `
   <div style="font-family: 'Segoe UI', sans-serif; padding: 20px; background-color: #fdfcfd; color: #333; border-radius: 10px; max-width: 600px; margin: auto;">
     <div style="text-align: center;">
-      <img src="https://cdn.jsdelivr.net/gh/openai/placeholder/logo-book-fancy.png" alt="Privatni časovi" width="80" style="margin-bottom: 20px;" />
+      <img src="https://raw.githubusercontent.com/marknadal/gh-images/main/book-pink-icon.png" alt="Privatni časovi" width="80" style="margin-bottom: 20px;" />
       <h2 style="color: #d81b60; margin: 0;">Privatni časovi</h2>
     </div>
     <p style="font-size: 16px;">Poštovani/a <strong>${ime} ${prezime}</strong>,</p>
     <p style="font-size: 16px;">Uspešno ste zakazali čas za:</p>
     <p style="font-size: 18px; background-color: #ffe6ee; padding: 10px; border-radius: 8px;"><strong>📅 ${datum} u 🕒 ${vreme}</strong></p>
-    <p style="margin-top: 10px;">Za detaljnije dogovore oko mesta održavanja časa možete se čuti sa drugom stranom:</p>
+    <p style="margin-top: 10px;">Kontaktiraće Vas profesor za detaljnije dogovore oko održavanja časa:</p>
     <p style="font-size: 16px; background: #fff3f8; padding: 10px; border-left: 4px solid #f06292; border-radius: 5px;"><strong>📞 Broj učenika: ${telefonUcenika}</strong></p>
     <p style="margin-top: 30px; font-size: 14px;">Hvala na poverenju!<br/>Tim <strong>Privatni časovi</strong></p>
   </div>
