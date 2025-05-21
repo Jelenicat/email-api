@@ -6,9 +6,9 @@ export default async function handler(req, res) {
     return res.status(405).json({ message: 'Only POST method is allowed' });
   }
 
-  const { ime, prezime, email, datum, vreme } = req.body;
+  const { ime, prezime, email, datum, vreme, telefonUcenika, profesorEmail } = req.body;
 
-  if (!ime || !prezime || !email || !datum || !vreme) {
+  if (!ime || !prezime || !email || !datum || !vreme || !telefonUcenika || !profesorEmail) {
     return res.status(400).json({ message: 'Nedostaju podaci za slanje' });
   }
 
@@ -17,8 +17,17 @@ export default async function handler(req, res) {
     process.env.MAILJET_SECRET_KEY
   );
 
+  const tekst = `Poštovani/a ${ime} ${prezime},
+
+Uspešno ste zakazali čas za ${datum} u ${vreme}.
+
+Za detaljnije dogovore oko mesta održavanja časa možete se čuti sa drugom stranom.
+📞 Broj telefona učenika: ${telefonUcenika}
+
+Hvala na poverenju!`;
+
   try {
-    const request = await mailjetClient
+    await mailjetClient
       .post('send', { version: 'v3.1' })
       .request({
         Messages: [
@@ -28,13 +37,11 @@ export default async function handler(req, res) {
               Name: 'Privatni časovi',
             },
             To: [
-              {
-                Email: email,
-                Name: `${ime} ${prezime}`,
-              },
+              { Email: email, Name: `${ime} ${prezime}` },
+              { Email: profesorEmail, Name: 'Profesor' },
             ],
             Subject: 'Potvrda o zakazanom času',
-            TextPart: `Postovani/a ${ime} ${prezime},\n\nUspesno ste zakazali čas za ${datum} u ${vreme}.\n\nHvala na poverenju!`,
+            TextPart: tekst,
           },
         ],
       });
