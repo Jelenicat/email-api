@@ -8,6 +8,8 @@ export default async function handler(req, res) {
 
   const { ime, prezime, email, datum, vreme, telefonUcenika, profesorEmail } = req.body;
 
+  console.log("PRIMLJENO:", { ime, prezime, email, datum, vreme, telefonUcenika, profesorEmail });
+
   if (!ime || !prezime || !email || !datum || !vreme || !telefonUcenika || !profesorEmail) {
     return res.status(400).json({ message: 'Nedostaju podaci za slanje' });
   }
