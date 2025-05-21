@@ -22,7 +22,6 @@ export default async function handler(req, res) {
   const html = `
   <div style="font-family: 'Segoe UI', sans-serif; padding: 20px; background-color: #fdfcfd; color: #333; border-radius: 10px; max-width: 600px; margin: auto;">
     <div style="text-align: center;">
-      <img src="https://raw.githubusercontent.com/marknadal/gh-images/main/book-pink-icon.png" alt="Privatni časovi" width="80" style="margin-bottom: 20px;" />
       <h2 style="color: #d81b60; margin: 0;">Privatni časovi</h2>
     </div>
     <p style="font-size: 16px;">Poštovani/a <strong>${ime} ${prezime}</strong>,</p>
