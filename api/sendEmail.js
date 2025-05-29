@@ -22,8 +22,22 @@ export default async function handler(req, res) {
     vreme,
     telefonUcenika,
     profesorEmail,
-    googleMeetLink, // <- ispravno ime promenljive
+    googleMeetLink,
+    nacinCasa, // ✅ dodato
   } = req.body;
+
+  // ✅ LOG za proveru šta ti stiže
+  console.log('📨 Podaci za email:', {
+    ime,
+    prezime,
+    email,
+    datum,
+    vreme,
+    telefonUcenika,
+    profesorEmail,
+    googleMeetLink,
+    nacinCasa,
+  });
 
   if (!ime || !prezime || !email || !datum || !vreme || !telefonUcenika || !profesorEmail) {
     return res.status(400).json({ message: 'Nedostaju podaci za slanje' });
@@ -35,7 +49,7 @@ export default async function handler(req, res) {
   );
 
   const tekst = `Poštovani/a ${ime} ${prezime},\n\nUspešno ste zakazali čas za ${datum} u ${vreme}.
-${googleMeetLink ? `\n🔗 Link za online čas: ${googleMeetLink}` : ''}
+${nacinCasa === 'online' && googleMeetLink ? `\n🔗 Link za online čas: ${googleMeetLink}` : ''}
 \nBroj telefona učenika: ${telefonUcenika}\n\nHvala na poverenju!`;
 
   const html = `
@@ -48,7 +62,7 @@ ${googleMeetLink ? `\n🔗 Link za online čas: ${googleMeetLink}` : ''}
     <p style="font-size: 18px; background-color: #ffe6ee; padding: 10px; border-radius: 8px;"><strong>📅 ${datum} u 🕒 ${vreme}</strong></p>
 
     ${
-      googleMeetLink
+      nacinCasa === 'online' && googleMeetLink
         ? `<p style="font-size: 16px;">🔗 Link za online čas:</p>
            <p><a href="${googleMeetLink}" style="color: #d81b60; font-weight: bold;">${googleMeetLink}</a></p>`
         : ''
