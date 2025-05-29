@@ -1,4 +1,3 @@
-// api/sendEmail.js
 import mailjet from 'node-mailjet';
 
 export default async function handler(req, res) {
@@ -15,7 +14,16 @@ export default async function handler(req, res) {
     return res.status(405).json({ message: 'Only POST method is allowed' });
   }
 
-  const { ime, prezime, email, datum, vreme, telefonUcenika, profesorEmail } = req.body;
+  const {
+    ime,
+    prezime,
+    email,
+    datum,
+    vreme,
+    telefonUcenika,
+    profesorEmail,
+    googleMeetLink, // <- ispravno ime promenljive
+  } = req.body;
 
   if (!ime || !prezime || !email || !datum || !vreme || !telefonUcenika || !profesorEmail) {
     return res.status(400).json({ message: 'Nedostaju podaci za slanje' });
@@ -26,7 +34,9 @@ export default async function handler(req, res) {
     process.env.MAILJET_SECRET_KEY
   );
 
-  const tekst = `Poštovani/a ${ime} ${prezime},\n\nUspešno ste zakazali čas za ${datum} u ${vreme}.\n\nBroj telefona učenika: ${telefonUcenika}\n\nHvala na poverenju!`;
+  const tekst = `Poštovani/a ${ime} ${prezime},\n\nUspešno ste zakazali čas za ${datum} u ${vreme}.
+${googleMeetLink ? `\n🔗 Link za online čas: ${googleMeetLink}` : ''}
+\nBroj telefona učenika: ${telefonUcenika}\n\nHvala na poverenju!`;
 
   const html = `
   <div style="font-family: 'Segoe UI', sans-serif; padding: 20px; background-color: #fdfcfd; color: #333; border-radius: 10px; max-width: 600px; margin: auto;">
@@ -36,6 +46,14 @@ export default async function handler(req, res) {
     <p style="font-size: 16px;">Poštovani/a <strong>${ime} ${prezime}</strong>,</p>
     <p style="font-size: 16px;">Uspešno ste zakazali čas za:</p>
     <p style="font-size: 18px; background-color: #ffe6ee; padding: 10px; border-radius: 8px;"><strong>📅 ${datum} u 🕒 ${vreme}</strong></p>
+
+    ${
+      googleMeetLink
+        ? `<p style="font-size: 16px;">🔗 Link za online čas:</p>
+           <p><a href="${googleMeetLink}" style="color: #d81b60; font-weight: bold;">${googleMeetLink}</a></p>`
+        : ''
+    }
+
     <p style="margin-top: 10px;">Kontaktiraće Vas profesor za detaljnije dogovore oko održavanja časa:</p>
     <p style="font-size: 16px; background: #fff3f8; padding: 10px; border-left: 4px solid #f06292; border-radius: 5px;"><strong>📞 Broj učenika: ${telefonUcenika}</strong></p>
     <p style="margin-top: 30px; font-size: 14px;">Hvala na poverenju!<br/>Tim <strong>Privatni časovi</strong></p>
