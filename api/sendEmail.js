@@ -1,14 +1,9 @@
 import mailjet from 'node-mailjet';
+import applyCors from './utils/cors';
 
 export default async function handler(req, res) {
-  // ✅ CORS
-  res.setHeader('Access-Control-Allow-Origin', '*');
-  res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
-  res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
-
-  if (req.method === 'OPTIONS') {
-    return res.status(200).end();
-  }
+  const isPreflight = applyCors(req, res);
+  if (isPreflight) return;
 
   if (req.method !== 'POST') {
     return res.status(405).json({ message: 'Only POST method is allowed' });
@@ -22,26 +17,14 @@ export default async function handler(req, res) {
     vreme,
     telefonUcenika,
     profesorEmail,
-    googleMeetLink,
-    nacinCasa, // ✅ dodato
-  } = req.body;
-
-  // ✅ LOG za proveru šta ti stiže
-  console.log('📨 Podaci za email:', {
-    ime,
-    prezime,
-    email,
-    datum,
-    vreme,
-    telefonUcenika,
-    profesorEmail,
-    googleMeetLink,
     nacinCasa,
-  });
+    jitsiLink
+  } = req.body;
 
   if (!ime || !prezime || !email || !datum || !vreme || !telefonUcenika || !profesorEmail) {
     return res.status(400).json({ message: 'Nedostaju podaci za slanje' });
   }
+
 
   const mailjetClient = mailjet.apiConnect(
     process.env.MAILJET_API_KEY,
@@ -49,7 +32,7 @@ export default async function handler(req, res) {
   );
 
   const tekst = `Poštovani/a ${ime} ${prezime},\n\nUspešno ste zakazali čas za ${datum} u ${vreme}.
-${nacinCasa === 'online' && googleMeetLink ? `\n🔗 Link za online čas: ${googleMeetLink}` : ''}
+${jitsiLink ? `\n🔗 Link za online čas: ${jitsiLink}` : ''}
 \nBroj telefona učenika: ${telefonUcenika}\n\nHvala na poverenju!`;
 
   const html = `
@@ -62,9 +45,9 @@ ${nacinCasa === 'online' && googleMeetLink ? `\n🔗 Link za online čas: ${goog
     <p style="font-size: 18px; background-color: #ffe6ee; padding: 10px; border-radius: 8px;"><strong>📅 ${datum} u 🕒 ${vreme}</strong></p>
 
     ${
-      nacinCasa === 'online' && googleMeetLink
+      jitsiLink
         ? `<p style="font-size: 16px;">🔗 Link za online čas:</p>
-           <p><a href="${googleMeetLink}" style="color: #d81b60; font-weight: bold;">${googleMeetLink}</a></p>`
+           <p><a href="${jitsiLink}" style="color: #d81b60; font-weight: bold;">${jitsiLink}</a></p>`
         : ''
     }
 
@@ -95,7 +78,7 @@ ${nacinCasa === 'online' && googleMeetLink ? `\n🔗 Link za online čas: ${goog
         ],
       });
 
-    return res.status(200).json({ message: 'Email uspešno poslat!' });
+    return res.status(200).json({ message: 'Email uspešno poslat!', jitsiLink });
   } catch (error) {
     console.error('Mailjet greška:', error);
     return res.status(500).json({ message: 'Greška pri slanju emaila' });
