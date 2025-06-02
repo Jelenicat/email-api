@@ -35,7 +35,7 @@ export default async function handler(req, res) {
 ${jitsiLink ? `\n🔗 Link za online čas: ${jitsiLink}` : ''}
 \nBroj telefona učenika: ${telefonUcenika}\n\nHvala na poverenju!`;
 
-  const html = `
+const html = `
   <div style="font-family: 'Segoe UI', sans-serif; padding: 20px; background-color: #fdfcfd; color: #333; border-radius: 10px; max-width: 600px; margin: auto;">
     <div style="text-align: center;">
       <h2 style="color: #d81b60; margin: 0;">Privatni časovi</h2>
@@ -44,18 +44,21 @@ ${jitsiLink ? `\n🔗 Link za online čas: ${jitsiLink}` : ''}
     <p style="font-size: 16px;">Uspešno ste zakazali čas za:</p>
     <p style="font-size: 18px; background-color: #ffe6ee; padding: 10px; border-radius: 8px;"><strong>📅 ${datum} u 🕒 ${vreme}</strong></p>
 
-    ${
-      jitsiLink
-        ? `<p style="font-size: 16px;">🔗 Link za online čas:</p>
-           <p><a href="${jitsiLink}" style="color: #d81b60; font-weight: bold;">${jitsiLink}</a></p>`
-        : ''
-    }
+    ${jitsiLink ? `
+      <p style="font-size: 16px;">🔗 Link za online čas:</p>
+      <p><a href="${jitsiLink}" style="color: #d81b60; font-weight: bold;">${jitsiLink}</a></p>
+    ` : ''}
 
-    <p style="margin-top: 10px;">Kontaktiraće Vas profesor za detaljnije dogovore oko održavanja časa:</p>
+    ${nacinCasa === 'uzivo' ? `
+      <p style="margin-top: 10px;">Kontaktiraće Vas profesor za detaljnije dogovore oko održavanja časa:</p>
+    ` : ''}
+
     <p style="font-size: 16px; background: #fff3f8; padding: 10px; border-left: 4px solid #f06292; border-radius: 5px;"><strong>📞 Broj učenika: ${telefonUcenika}</strong></p>
+
     <p style="margin-top: 30px; font-size: 14px;">Hvala na poverenju!<br/>Tim <strong>Privatni časovi</strong></p>
   </div>
-  `;
+`;
+
 
   try {
     await mailjetClient
