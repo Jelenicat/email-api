@@ -1,0 +1,7 @@
+{
+  "functions": {
+    "api/sendRatingEmails.js": {
+      "schedule": "*/10 * * * *"
+    }
+  }
+}
