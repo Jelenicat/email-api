@@ -1,7 +1,9 @@
+
 {
-  "functions": {
-    "api/sendRatingEmails.js": {
+  "crons": [
+    {
+      "path": "/api/sendRatingEmails",
       "schedule": "*/10 * * * *"
     }
-  }
+  ]
 }
