@@ -1,9 +1,8 @@
-
 {
   "crons": [
     {
       "path": "/api/sendRatingEmails",
-      "schedule": "*/10 * * * *"
+      "schedule": "0 20 * * *"
     }
   ]
 }
