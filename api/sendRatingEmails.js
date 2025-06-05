@@ -1,6 +1,3 @@
-// This file defines a Serverless Cron function that sends rating emails
-// It runs on Vercel Cron scheduler (every 10 minutes or daily, based on setup)
-
 import { db } from './utils/firebaseAdmin';
 import mailjet from 'node-mailjet';
 
@@ -13,7 +10,7 @@ export default async function handler(req, res) {
   if (req.method !== 'GET') return res.status(405).json({ message: 'Only GET allowed' });
 
   const now = new Date();
-  const cutoff = new Date(now.getTime() - 3 * 60 * 60 * 1000); // 3 hours ago
+  const cutoff = new Date(now.getTime() - 3 * 60 * 60 * 1000); // 3 sata unazad
 
   try {
     const snapshot = await db.collection('rezervacije')
@@ -27,6 +24,13 @@ export default async function handler(req, res) {
       const { datum, vreme, email, profesorId, ime, prezime } = data;
 
       const rezervacijaVreme = new Date(`${datum}T${vreme}`);
+
+      // DEBUG LOG
+      console.log(`📌 Rezervacija: ${doc.id}`);
+      console.log(`🕓 Vreme rezervacije: ${rezervacijaVreme.toISOString()}`);
+      console.log(`🕒 Cutoff: ${cutoff.toISOString()}`);
+      console.log(`📬 Email: ${email}`);
+
       if (rezervacijaVreme < cutoff) {
         const oceniLink = `https://privatnicasovi.vercel.app/rate/${doc.id}`;
 
@@ -53,15 +57,22 @@ export default async function handler(req, res) {
                 HTMLPart: html,
               },
             ],
-          }).then(() => doc.ref.update({ ratingSent: true }))
+          }).then(() => {
+            console.log(`✅ Poslat email za rezervaciju ${doc.id}`);
+            return doc.ref.update({ ratingSent: true });
+          }).catch(err => {
+            console.error(`❌ Greška pri slanju emaila za ${doc.id}:`, err);
+          })
         );
+      } else {
+        console.log(`⏩ Preskačem – rezervacija nije starija od 3h`);
       }
     });
 
     await Promise.all(promises);
     res.status(200).json({ message: 'Emailovi za ocenu uspešno poslati' });
   } catch (err) {
-    console.error(err);
+    console.error('🔥 Globalna greška:', err);
     res.status(500).json({ error: 'Nešto je pošlo po zlu' });
   }
 }
