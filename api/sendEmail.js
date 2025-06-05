@@ -19,7 +19,7 @@ export default async function handler(req, res) {
     profesorEmail,
     nacinCasa,
     jitsiLink,
-    tip // 👈 ovo dodajemo
+    tip
   } = req.body;
 
   if (!email || !tip) {
@@ -31,31 +31,26 @@ export default async function handler(req, res) {
     process.env.MAILJET_SECRET_KEY
   );
 
-  // 📩 Dobrodošlica za profesora
+  // 🎉 Dobrodošlica za profesora
   if (tip === 'registracija-profesor') {
-    const text = `Poštovani,\n\nUspešno ste se registrovali kao profesor na platformi Privatni časovi.
-
-Uskoro uvodimo ocenjivanje profesora – kvalitet donosi veću vidljivost!
-
-Sada možete urediti svoj profil i dodati slobodne termine. Hvala vam što postajete deo naše zajednice.`;
-
     const html = `
       <div style="font-family: 'Segoe UI', sans-serif; padding: 20px; background-color: #fdfcfd; color: #333; border-radius: 10px; max-width: 600px; margin: auto;">
         <div style="text-align: center;">
-          <h2 style="color: #d81b60; margin: 0;">Privatni časovi</h2>
+          <h2 style="color: #d81b60;">Dobrodošli na Privatni časovi!</h2>
         </div>
-        <p style="font-size: 16px;">Poštovani,</p>
-        <p style="font-size: 16px;">Uspešno ste se registrovali kao profesor na platformi <strong>Privatni časovi</strong>.</p>
-
-        <p style="margin-top: 20px; background-color: #fff3f8; padding: 15px; border-left: 4px solid #d81b60; border-radius: 8px;">
-          🆕 <strong>Uskoro uvodimo ocenjivanje profesora – kvalitet donosi veću vidljivost!</strong>
-        </p>
-
-        <p style="font-size: 16px; margin-top: 20px;">
-          Sada možete urediti svoj profil, uneti predmete, gradove i dodati slobodne termine.
-        </p>
-
-        <p style="margin-top: 30px; font-size: 14px;">Hvala vam što postajete deo naše zajednice!<br/>Tim <strong>Privatni časovi</strong></p>
+        <p>Poštovani,</p>
+        <p>Uspešno ste se registrovali kao profesor na platformi <strong>Privatni časovi</strong>.</p>
+        <p>Da biste se prikazivali učenicima u rezultatima pretrage, molimo vas da uredite svoj profil:</p>
+        <ul>
+          <li>Unesite <strong>ime i prezime</strong></li>
+          <li>Izaberite <strong>predmete</strong> koje predajete</li>
+          <li>Označite <strong>nivoe obrazovanja</strong> koje pokrivate</li>
+          <li>Unesite <strong>grad</strong> i po potrebi opštine</li>
+          <li>Dodajte <strong>cenu časa</strong></li>
+          <li>Postavite <strong>slobodne termine</strong> u kalendaru</li>
+        </ul>
+        <p>Učenici mogu zakazati čas bez registracije. Ako označite da je čas online, automatski se generiše link za video poziv.</p>
+        <p style="margin-top: 30px; font-size: 14px;">Hvala na poverenju!<br/>Tim <strong>Privatni časovi</strong></p>
       </div>
     `;
 
@@ -69,7 +64,6 @@ Sada možete urediti svoj profil i dodati slobodne termine. Hvala vam što posta
             },
             To: [{ Email: email }],
             Subject: '🎉 Dobrodošli na platformu Privatni časovi',
-            TextPart: text,
             HTMLPart: html,
           },
         ],
@@ -82,42 +76,34 @@ Sada možete urediti svoj profil i dodati slobodne termine. Hvala vam što posta
     }
   }
 
-  // ✅ Potvrda o zakazanom času (postojeća logika)
+  // ✅ Potvrda o zakazanom času
   if (!ime || !prezime || !datum || !vreme || !telefonUcenika || !profesorEmail) {
     return res.status(400).json({ message: 'Nedostaju podaci za potvrdu termina.' });
   }
 
   const tekst = `Poštovani/a ${ime} ${prezime},\n\nUspešno ste zakazali čas za ${datum} u ${vreme}.
 ${jitsiLink ? `\n🔗 Link za online čas: ${jitsiLink}` : ''}
-\nBroj telefona učenika: ${telefonUcenika}
-
-🆕 Uskoro uvodimo ocenjivanje profesora – kvalitet donosi vidljivost!
-
-Hvala na poverenju!`;
+\nBroj telefona učenika: ${telefonUcenika}\n\nHvala na poverenju!`;
 
   const html = `
     <div style="font-family: 'Segoe UI', sans-serif; padding: 20px; background-color: #fdfcfd; color: #333; border-radius: 10px; max-width: 600px; margin: auto;">
       <div style="text-align: center;">
-        <h2 style="color: #d81b60; margin: 0;">Privatni časovi</h2>
+        <h2 style="color: #d81b60;">Potvrda zakazanog časa</h2>
       </div>
-      <p style="font-size: 16px;">Poštovani/a <strong>${ime} ${prezime}</strong>,</p>
-      <p style="font-size: 16px;">Uspešno ste zakazali čas za:</p>
+      <p>Poštovani/a <strong>${ime} ${prezime}</strong>,</p>
+      <p>Uspešno ste zakazali čas za:</p>
       <p style="font-size: 18px; background-color: #ffe6ee; padding: 10px; border-radius: 8px;"><strong>📅 ${datum} u 🕒 ${vreme}</strong></p>
 
       ${jitsiLink ? `
-        <p style="font-size: 16px;">🔗 Link za online čas:</p>
+        <p>🔗 Link za online čas:</p>
         <p><a href="${jitsiLink}" style="color: #d81b60; font-weight: bold;">${jitsiLink}</a></p>
       ` : ''}
 
       ${nacinCasa === 'uzivo' ? `
-        <p style="margin-top: 10px;">Kontaktiraće Vas profesor za detaljnije dogovore oko održavanja časa:</p>
+        <p style="margin-top: 10px;">Kontaktiraće Vas profesor za detalje oko održavanja časa.</p>
       ` : ''}
 
       <p style="font-size: 16px; background: #fff3f8; padding: 10px; border-left: 4px solid #f06292; border-radius: 5px;"><strong>📞 Broj učenika: ${telefonUcenika}</strong></p>
-
-      <p style="margin-top: 30px; font-size: 15px; background-color: #fce4ec; padding: 15px; border-radius: 8px; border-left: 4px solid #d81b60;">
-        🆕 <strong>Uskoro uvodimo ocenjivanje profesora – kvalitet donosi vidljivost!</strong>
-      </p>
 
       <p style="margin-top: 30px; font-size: 14px;">Hvala na poverenju!<br/>Tim <strong>Privatni časovi</strong></p>
     </div>
