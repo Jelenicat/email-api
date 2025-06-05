@@ -7,14 +7,16 @@ const mailjetClient = mailjet.apiConnect(
 );
 
 export default async function handler(req, res) {
-  if (req.method !== 'GET') return res.status(405).json({ message: 'Only GET allowed' });
+  if (req.method !== 'GET') {
+    return res.status(405).json({ message: 'Only GET allowed' });
+  }
 
   const now = new Date();
   const cutoff = new Date(now.getTime() - 3 * 60 * 60 * 1000); // 3 sata unazad
 
   try {
     const snapshot = await db.collection('rezervacije')
-      .where('ratingSent', '!=', true)
+      .where('ratingSent', 'in', [false, null])
       .get();
 
     const promises = [];
