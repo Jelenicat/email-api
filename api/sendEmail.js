@@ -1,5 +1,6 @@
 import mailjet from 'node-mailjet';
 import applyCors from './utils/cors';
+import { db } from './utils/firebaseAdmin';
 
 export default async function handler(req, res) {
   const isPreflight = applyCors(req, res);
@@ -19,7 +20,8 @@ export default async function handler(req, res) {
     profesorEmail,
     nacinCasa,
     jitsiLink,
-    tip
+    tip,
+    profesorId
   } = req.body;
 
   if (!email || !tip) {
@@ -76,61 +78,115 @@ export default async function handler(req, res) {
     }
   }
 
-  // ✅ Potvrda o zakazanom času
-  if (!ime || !prezime || !datum || !vreme || !telefonUcenika || !profesorEmail) {
-    return res.status(400).json({ message: 'Nedostaju podaci za potvrdu termina.' });
-  }
+  // ✅ Zakazivanje časa
+  if (tip === 'zakazivanje') {
+    if (!ime || !prezime || !datum || !vreme || !telefonUcenika || !profesorEmail || !profesorId) {
+      return res.status(400).json({ message: 'Nedostaju podaci za potvrdu termina.' });
+    }
 
-  const tekst = `Poštovani/a ${ime} ${prezime},\n\nUspešno ste zakazali čas za ${datum} u ${vreme}.
+    const rezId = `${profesorId}_${datum}_${vreme}`;
+    const cancelLink = `https://www.pronadjiprofesora.com/cancel/${rezId}`;
+    const tekst = `Poštovani/a ${ime} ${prezime},\n\nUspešno ste zakazali čas za ${datum} u ${vreme}.
 ${jitsiLink ? `\n🔗 Link za online čas: ${jitsiLink}` : ''}
 \nBroj telefona učenika: ${telefonUcenika}\n\nHvala na poverenju!`;
 
-  const html = `
-    <div style="font-family: 'Segoe UI', sans-serif; padding: 20px; background-color: #fdfcfd; color: #333; border-radius: 10px; max-width: 600px; margin: auto;">
-      <div style="text-align: center;">
-        <h2 style="color: #d81b60;">Potvrda zakazanog časa</h2>
+    const html = `
+      <div style="font-family: 'Segoe UI', sans-serif; padding: 20px; background-color: #fdfcfd; color: #333; border-radius: 10px; max-width: 600px; margin: auto;">
+        <div style="text-align: center;">
+          <h2 style="color: #d81b60;">Potvrda zakazanog časa</h2>
+        </div>
+        <p>Poštovani/a <strong>${ime} ${prezime}</strong>,</p>
+        <p>Uspešno ste zakazali čas za:</p>
+        <p style="font-size: 18px; background-color: #ffe6ee; padding: 10px; border-radius: 8px;"><strong>🗓️ ${datum} u 🕒 ${vreme}</strong></p>
+
+        ${jitsiLink ? `
+          <p>🔗 Link za online čas:</p>
+          <p><a href="${jitsiLink}" style="color: #d81b60; font-weight: bold;">${jitsiLink}</a></p>
+        ` : ''}
+
+        ${nacinCasa === 'uzivo' ? `
+          <p style="margin-top: 10px;">Kontaktiraće Vas profesor za detalje oko održavanja časa.</p>
+        ` : ''}
+
+        <p style="font-size: 16px; background: #fff3f8; padding: 10px; border-left: 4px solid #f06292; border-radius: 5px;"><strong>📞 Broj učenika: ${telefonUcenika}</strong></p>
+
+        <p style="margin-top: 30px;">
+          <a href="${cancelLink}" style="padding: 10px 20px; background: #d81b60; color: white; border-radius: 5px; text-decoration: none; font-weight: bold;">
+            Otkaži čas
+          </a>
+        </p>
+
+        <p style="margin-top: 30px; font-size: 14px;">Hvala na poverenju!<br/>Tim <strong>Privatni časovi</strong></p>
       </div>
-      <p>Poštovani/a <strong>${ime} ${prezime}</strong>,</p>
-      <p>Uspešno ste zakazali čas za:</p>
-      <p style="font-size: 18px; background-color: #ffe6ee; padding: 10px; border-radius: 8px;"><strong>📅 ${datum} u 🕒 ${vreme}</strong></p>
+    `;
 
-      ${jitsiLink ? `
-        <p>🔗 Link za online čas:</p>
-        <p><a href="${jitsiLink}" style="color: #d81b60; font-weight: bold;">${jitsiLink}</a></p>
-      ` : ''}
-
-      ${nacinCasa === 'uzivo' ? `
-        <p style="margin-top: 10px;">Kontaktiraće Vas profesor za detalje oko održavanja časa.</p>
-      ` : ''}
-
-      <p style="font-size: 16px; background: #fff3f8; padding: 10px; border-left: 4px solid #f06292; border-radius: 5px;"><strong>📞 Broj učenika: ${telefonUcenika}</strong></p>
-
-      <p style="margin-top: 30px; font-size: 14px;">Hvala na poverenju!<br/>Tim <strong>Privatni časovi</strong></p>
-    </div>
-  `;
-
-  try {
-    await mailjetClient.post('send', { version: 'v3.1' }).request({
-      Messages: [
-        {
-          From: {
-            Email: 'noreply@privatnicasovi.org',
-            Name: 'Privatni časovi',
+    try {
+      await mailjetClient.post('send', { version: 'v3.1' }).request({
+        Messages: [
+          {
+            From: {
+              Email: 'noreply@privatnicasovi.org',
+              Name: 'Privatni časovi',
+            },
+            To: [
+              { Email: email, Name: `${ime} ${prezime}` },
+              { Email: profesorEmail, Name: 'Profesor' },
+            ],
+            Subject: '✅ Zakazan čas: potvrda',
+            TextPart: tekst,
+            HTMLPart: html,
           },
-          To: [
-            { Email: email, Name: `${ime} ${prezime}` },
-            { Email: profesorEmail, Name: 'Profesor' },
-          ],
-          Subject: '✅ Zakazan čas: potvrda',
-          TextPart: tekst,
-          HTMLPart: html,
-        },
-      ],
-    });
+        ],
+      });
 
-    return res.status(200).json({ message: 'Email uspešno poslat!', jitsiLink });
-  } catch (error) {
-    console.error('Mailjet greška:', error);
-    return res.status(500).json({ message: 'Greška pri slanju emaila' });
+      return res.status(200).json({ message: 'Email uspešno poslat!', jitsiLink });
+    } catch (error) {
+      console.error('Mailjet greška:', error);
+      return res.status(500).json({ message: 'Greška pri slanju emaila' });
+    }
   }
+
+  // ⛔ Otkazivanje časa
+  if (tip === 'otkazivanje') {
+    if (!profesorEmail || !ime || !prezime || !datum || !vreme || !nacinCasa) {
+      return res.status(400).json({ message: 'Nedostaju podaci za otkazivanje časa.' });
+    }
+
+    const subject = '⛔ Čas je otkazan od strane učenika';
+    const html = `
+      <div style="font-family: 'Segoe UI', sans-serif; padding: 20px; background-color: #fff4f6; color: #333; border-radius: 10px; max-width: 600px; margin: auto;">
+        <div style="text-align: center;">
+          <h2 style="color: #d81b60;">Obaveštenje o otkazivanju časa</h2>
+        </div>
+        <p>Poštovani,</p>
+        <p>Učenik <strong>${ime} ${prezime}</strong> je otkazao čas koji je bio zakazan za:</p>
+        <p style="font-size: 18px; background-color: #ffe6ee; padding: 10px; border-radius: 8px;"><strong>🗓️ ${datum} u 🕒 ${vreme} (${nacinCasa})</strong></p>
+        <p style="margin-top: 20px;">Ovaj termin je sada slobodan i može biti rezervisan od strane drugog učenika.</p>
+        <p style="margin-top: 30px; font-size: 14px;">Hvala na razumevanju,<br/>Tim <strong>Privatni časovi</strong></p>
+      </div>
+    `;
+
+    try {
+      await mailjetClient.post('send', { version: 'v3.1' }).request({
+        Messages: [
+          {
+            From: {
+              Email: 'noreply@privatnicasovi.org',
+              Name: 'Privatni časovi',
+            },
+            To: [{ Email: profesorEmail }],
+            Subject: subject,
+            HTMLPart: html,
+          },
+        ],
+      });
+
+      return res.status(200).json({ message: 'Email profesoru o otkazivanju poslat.' });
+    } catch (error) {
+      console.error('Mailjet greška:', error);
+      return res.status(500).json({ message: 'Greška pri slanju mejla o otkazivanju' });
+    }
+  }
+
+  return res.status(400).json({ message: 'Nepoznat tip akcije.' });
 }

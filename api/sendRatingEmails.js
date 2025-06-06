@@ -34,7 +34,7 @@ export default async function handler(req, res) {
       console.log(`📬 Email: ${email}`);
 
       if (rezervacijaVreme < cutoff) {
-        const oceniLink = `https://privatnicasovi.vercel.app/rate/${doc.id}`;
+        const oceniLink = `https://www.pronadjiprofesora.com/rate/${doc.id}`;
 
         const html = `
           <div style="font-family: 'Segoe UI'; background: #fff3f8; padding: 20px; border-radius: 10px;">
