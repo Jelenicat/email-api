@@ -110,11 +110,15 @@ ${jitsiLink ? `\n🔗 Link za online čas: ${jitsiLink}` : ''}
 
         <p style="font-size: 16px; background: #fff3f8; padding: 10px; border-left: 4px solid #f06292; border-radius: 5px;"><strong>📞 Broj učenika: ${telefonUcenika}</strong></p>
 
-        <p style="margin-top: 30px;">
-          <a href="${cancelLink}" style="padding: 10px 20px; background: #d81b60; color: white; border-radius: 5px; text-decoration: none; font-weight: bold;">
-            Otkaži čas
-          </a>
-        </p>
+      <p style="margin-top: 30px;">
+  <a href="${cancelLink}" style="padding: 10px 20px; background: #d81b60; color: white; border-radius: 5px; text-decoration: none; font-weight: bold;">
+    Otkaži čas
+  </a>
+</p>
+<p style="font-size: 13px; color: #555; margin-top: 10px;">
+  Učenik može otkazati NAJKASNIJE 2 sata pre početka.
+</p>
+
 
         <p style="margin-top: 30px; font-size: 14px;">Hvala na poverenju!<br/>Tim <strong>Privatni časovi</strong></p>
       </div>
