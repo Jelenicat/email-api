@@ -110,15 +110,14 @@ ${jitsiLink ? `\n🔗 Link za online čas: ${jitsiLink}` : ''}
 
         <p style="font-size: 16px; background: #fff3f8; padding: 10px; border-left: 4px solid #f06292; border-radius: 5px;"><strong>📞 Broj učenika: ${telefonUcenika}</strong></p>
 
-      <p style="margin-top: 30px;">
-  <a href="${cancelLink}" style="padding: 10px 20px; background: #d81b60; color: white; border-radius: 5px; text-decoration: none; font-weight: bold;">
-    Otkaži čas
-  </a>
-</p>
-<p style="font-size: 13px; color: #555; margin-top: 10px;">
-  Učenik može otkazati NAJKASNIJE 2 sata pre početka.
-</p>
-
+        <p style="margin-top: 30px;">
+          <a href="${cancelLink}" style="padding: 10px 20px; background: #d81b60; color: white; border-radius: 5px; text-decoration: none; font-weight: bold;">
+            Otkaži čas
+          </a>
+        </p>
+        <p style="font-size: 13px; color: #555; margin-top: 10px;">
+          Učenik može otkazati NAJKASNIJE 2 sata pre početka.
+        </p>
 
         <p style="margin-top: 30px; font-size: 14px;">Hvala na poverenju!<br/>Tim <strong>Privatni časovi</strong></p>
       </div>
@@ -150,7 +149,7 @@ ${jitsiLink ? `\n🔗 Link za online čas: ${jitsiLink}` : ''}
     }
   }
 
-  // ⛔ Otkazivanje časa
+  // ⛔ Učenik otkazuje čas
   if (tip === 'otkazivanje') {
     if (!profesorEmail || !ime || !prezime || !datum || !vreme || !nacinCasa) {
       return res.status(400).json({ message: 'Nedostaju podaci za otkazivanje časa.' });
@@ -189,6 +188,48 @@ ${jitsiLink ? `\n🔗 Link za online čas: ${jitsiLink}` : ''}
     } catch (error) {
       console.error('Mailjet greška:', error);
       return res.status(500).json({ message: 'Greška pri slanju mejla o otkazivanju' });
+    }
+  }
+
+  // ⛔ Profesor otkazuje čas
+  if (tip === 'otkazivanje-profesor') {
+    if (!email || !ime || !prezime || !datum || !vreme || !nacinCasa || !profesorEmail) {
+      return res.status(400).json({ message: 'Nedostaju podaci za obaveštavanje učenika.' });
+    }
+
+    const subject = '⛔ Čas je otkazan od strane profesora';
+    const html = `
+      <div style="font-family: 'Segoe UI', sans-serif; padding: 20px; background-color: #fff4f6; color: #333; border-radius: 10px; max-width: 600px; margin: auto;">
+        <div style="text-align: center;">
+          <h2 style="color: #d81b60;">Obaveštenje o otkazivanju časa</h2>
+        </div>
+        <p>Poštovani/a <strong>${ime} ${prezime}</strong>,</p>
+        <p>Profesor je otkazao čas koji je bio zakazan za:</p>
+        <p style="font-size: 18px; background-color: #ffe6ee; padding: 10px; border-radius: 8px;"><strong>🗓️ ${datum} u 🕒 ${vreme} (${nacinCasa})</strong></p>
+        <p>Molimo Vas da rezervišete novi termin ili pronađete drugog profesora.</p>
+        <p style="margin-top: 30px; font-size: 14px;">Hvala na razumevanju,<br/>Tim <strong>Privatni časovi</strong></p>
+      </div>
+    `;
+
+    try {
+      await mailjetClient.post('send', { version: 'v3.1' }).request({
+        Messages: [
+          {
+            From: {
+              Email: 'noreply@privatnicasovi.org',
+              Name: 'Privatni časovi',
+            },
+            To: [{ Email: email }],
+            Subject: subject,
+            HTMLPart: html,
+          },
+        ],
+      });
+
+      return res.status(200).json({ message: 'Email učeniku o otkazivanju poslat.' });
+    } catch (error) {
+      console.error('Mailjet greška:', error);
+      return res.status(500).json({ message: 'Greška pri slanju mejla učeniku' });
     }
   }
 
