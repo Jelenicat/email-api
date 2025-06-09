@@ -233,5 +233,49 @@ ${jitsiLink ? `\n🔗 Link za online čas: ${jitsiLink}` : ''}
     }
   }
 
+    // 📩 Kontakt forma
+  if (tip === 'kontakt-forma') {
+    const { poruka } = req.body;
+
+    if (!ime || !email || !poruka) {
+      return res.status(400).json({ message: 'Nedostaju podaci iz kontakt forme.' });
+    }
+
+    const subject = '📩 Nova poruka sa kontakt forme';
+    const html = `
+      <div style="font-family: 'Segoe UI', sans-serif; padding: 20px; background-color: #fdfcfd; color: #333; border-radius: 10px; max-width: 600px; margin: auto;">
+        <h2 style="color: #d81b60;">Nova poruka preko sajta</h2>
+        <p><strong>Ime:</strong> ${ime}</p>
+        <p><strong>Email:</strong> ${email}</p>
+        <p><strong>Poruka:</strong></p>
+        <div style="background-color: #ffe6ee; padding: 10px; border-radius: 8px; margin-top: 5px;">
+          ${poruka}
+        </div>
+      </div>
+    `;
+
+    try {
+      await mailjetClient.post('send', { version: 'v3.1' }).request({
+        Messages: [
+          {
+            From: {
+              Email: 'noreply@privatnicasovi.org',
+              Name: 'Privatni časovi',
+            },
+            To: [{ Email: 'kontakt@pronadjiprofesora.com' }],
+            Subject: subject,
+            HTMLPart: html,
+          },
+        ],
+      });
+
+      return res.status(200).json({ message: 'Poruka sa kontakt forme poslata.' });
+    } catch (error) {
+      console.error('Mailjet greška (kontakt-forma):', error);
+      return res.status(500).json({ message: 'Greška pri slanju mejla sa kontakt forme' });
+    }
+  }
+
+
   return res.status(400).json({ message: 'Nepoznat tip akcije.' });
 }
