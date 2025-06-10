@@ -21,7 +21,7 @@ export default async function handler(req, res) {
 
     const promises = [];
 
-    snapshot.forEach(doc => {
+    for (const doc of snapshot.docs) {
       const data = doc.data();
       const { datum, vreme, email, profesorId, ime, prezime } = data;
 
@@ -34,13 +34,20 @@ export default async function handler(req, res) {
       console.log(`📬 Email: ${email}`);
 
       if (rezervacijaVreme < cutoff) {
+        // Dohvati ime i prezime profesora
+        const profesorSnapshot = await db.collection('profesori').doc(profesorId).get();
+        const profesorData = profesorSnapshot.exists ? profesorSnapshot.data() : null;
+        
+        const imeProfesora = profesorData ? profesorData.ime : "Nepoznat";
+        const prezimeProfesora = profesorData ? profesorData.prezime : "Nepoznat";
+
         const oceniLink = `https://www.pronadjiprofesora.com/rate/${doc.id}`;
 
         const html = `
           <div style="font-family: 'Segoe UI'; background: #fff3f8; padding: 20px; border-radius: 10px;">
             <h2 style="color: #d81b60;">Privatni časovi</h2>
             <p>Poštovani ${ime} ${prezime},</p>
-            <p>Vaš čas je završen. Bilo bi nam jako važno da ocenite profesora.</p>
+            <p>Vaš čas sa profesorom <strong>${imeProfesora} ${prezimeProfesora}</strong> je završen. Bilo bi nam jako važno da ocenite profesora.</p>
             <a href="${oceniLink}" style="padding: 10px 20px; background: #d81b60; color: white; border-radius: 5px; text-decoration: none;">
               Ocenite profesora
             </a>
@@ -55,7 +62,7 @@ export default async function handler(req, res) {
                 From: { Email: 'noreply@privatnicasovi.org', Name: 'Privatni časovi' },
                 To: [{ Email: email }],
                 Subject: '📝 Ocenite profesora',
-                TextPart: 'Vaš čas je završen, ocenite profesora.',
+                TextPart: `Vaš čas sa profesorom ${imeProfesora} ${prezimeProfesora} je završen, ocenite profesora.`,
                 HTMLPart: html,
               },
             ],
@@ -69,7 +76,7 @@ export default async function handler(req, res) {
       } else {
         console.log(`⏩ Preskačem – rezervacija nije starija od 3h`);
       }
-    });
+    }
 
     await Promise.all(promises);
     res.status(200).json({ message: 'Emailovi za ocenu uspešno poslati' });
