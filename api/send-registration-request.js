@@ -19,6 +19,10 @@ export default async function handler(req, res) {
         ? "New Coach Profile Request"
         : "New Academy Profile Request";
 
+    const approveLink = `https://email-api-vert-beta.vercel.app/api/approve-user?uid=${encodeURIComponent(
+      data.uid
+    )}&type=${encodeURIComponent(data.type)}`;
+
     const html = `
       <h2>${subject}</h2>
 
@@ -50,13 +54,30 @@ export default async function handler(req, res) {
 
       <hr />
 
-      <p>Approve manually in Firebase:</p>
-      <ul>
-        <li>approvalStatus: approved</li>
-        <li>profileVisible: true</li>
-        <li>membershipActive: true</li>
-        <li>membershipStatus: active</li>
-      </ul>
+      <p>Click below to approve this profile:</p>
+
+      <p>
+        <a href="${approveLink}"
+          style="
+            display:inline-block;
+            padding:12px 22px;
+            background:#16a34a;
+            color:#ffffff;
+            text-decoration:none;
+            border-radius:8px;
+            font-weight:bold;
+          ">
+          Approve Profile
+        </a>
+      </p>
+
+      <p style="font-size:13px;color:#666;">
+        Manual approval values:
+        approvalStatus=approved,
+        profileVisible=true,
+        membershipActive=true,
+        membershipStatus=active
+      </p>
     `;
 
     const resendResponse = await fetch("https://api.resend.com/emails", {
