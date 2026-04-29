@@ -38,13 +38,19 @@ export default async function handler(req, res) {
     getAdminApp();
     const db = getFirestore();
 
-    const updateData = {
-      approvalStatus: "approved",
-      profileVisible: true,
-      membershipActive: true,
-      membershipStatus: "active",
-      approvedAt: new Date(),
-    };
+ const approvedAt = new Date();
+
+const expiresAt = new Date(approvedAt);
+expiresAt.setFullYear(expiresAt.getFullYear() + 1);
+
+const updateData = {
+  approvalStatus: "approved",
+  profileVisible: true,
+  membershipActive: true,
+  membershipStatus: "active",
+  approvedAt,
+  expiresAt,
+};
 
     await db.collection("users").doc(uid).set(updateData, { merge: true });
 
